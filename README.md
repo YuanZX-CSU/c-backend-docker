@@ -66,22 +66,22 @@ sudo docker service rm c-backend-service
 
 ## 文件列表
 
-`c_backend.tar.gz`
+`c_backend.tar.gz` :
 
-来自仓库 [https://github.com/pathrise-eng/pathrise-python-tutor ](https://github.com/pathrise-eng/pathrise-python-tutor/tree/master/v4-cokapi/backends/c_cpp) 的部分代码打包，减少构建时的网络影响
+来自仓库 https://github.com/pathrise-eng/pathrise-python-tutor/tree/master/v4-cokapi/backends/c_cpp 的代码打包，减少构建时的网络影响
 
-`openssl-3.2.1.tar`
+`openssl-3.2.1.tar` :
 
-来自相关网站，减少构建时的网络影响
+来自 https://www.openssl.org/source/openssl-3.2.1.tar.gz ，减少构建时的网络影响
 
-`Python-3.12.2.tgz`
+`Python-3.12.2.tgz` :
 
-来自相关网站，减少构建时的网络影响
+来自 https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz ，减少构建时的网络影响
 
-`backend.py`
+`backend.py` :
 
-后端脚本
+服务端脚本
 
-`run_cpp_backend.py`
+`run_cpp_backend.py` :
 
-替换`c_backend.tar.gz`里原有的脚本，使其适配后端
+替换`c_backend.tar.gz`里原有的脚本，使其适配服务端
