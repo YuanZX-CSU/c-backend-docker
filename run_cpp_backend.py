@@ -82,34 +82,22 @@ if gcc_retcode == 0:
     # print >> sys.stderr, '==='
 
     if input_data is None:
-        # 无用例输入
-        # 使用Valgrind运行编译后的代码
-        VALGRIND_EXE = os.path.join(DN, 'valgrind-3.11.0/inst/bin/valgrind')
-        valgrind_p = Popen(['stdbuf', '-o0', # 确保stdout不会被缓冲，以便正确追踪
-                            VALGRIND_EXE,
-                            '--tool=memcheck',
-                            '--source-filename=' + FN,
-                            '--trace-filename=' + VGTRACE_PATH,
-                            EXE_PATH],
-                        stdout=PIPE, stderr=PIPE)
-        (valgrind_stdout, valgrind_stderr) = valgrind_p.communicate()
-        valgrind_retcode = valgrind_p.returncode
-    else:
-        # 有用例输入
-        # 使用Valgrind运行编译后的代码
-        VALGRIND_EXE = os.path.join(DN, 'valgrind-3.11.0/inst/bin/valgrind')
-        valgrind_p = Popen(['stdbuf', '-o0', # 确保stdout不会被缓冲，以便正确追踪
-                            VALGRIND_EXE,
-                            '--tool=memcheck',
-                            '--source-filename=' + FN,
-                            '--trace-filename=' + VGTRACE_PATH,
-                            EXE_PATH],
-                        stdout=PIPE,
-                        stdin=PIPE,
-                        stderr=PIPE)
-        valgrind_p.stdin.write(input_data.encode('utf-8'))
-        (valgrind_stdout, valgrind_stderr) = valgrind_p.communicate()
-        valgrind_retcode = valgrind_p.returncode
+        input_data = '' 
+        
+    # 使用Valgrind运行编译后的代码
+    VALGRIND_EXE = os.path.join(DN, 'valgrind-3.11.0/inst/bin/valgrind')
+    valgrind_p = Popen(['stdbuf', '-o0', # 确保stdout不会被缓冲，以便正确追踪
+                        VALGRIND_EXE,
+                        '--tool=memcheck',
+                        '--source-filename=' + FN,
+                        '--trace-filename=' + VGTRACE_PATH,
+                        EXE_PATH],
+                    stdout=PIPE,
+                    stdin=PIPE,
+                    stderr=PIPE)
+    valgrind_p.stdin.write(input_data.encode('utf-8'))
+    (valgrind_stdout, valgrind_stderr) = valgrind_p.communicate()
+    valgrind_retcode = valgrind_p.returncode
 
     # 输出Valgrind的错误信息
     # 防止输出多余信息
