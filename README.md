@@ -24,9 +24,9 @@ sudo docker run -it -p 5000:5000 c-backend:latest
 sudo docker swarm init
 ```
 
-创建服务 (--replicas 实例数量)
+创建服务 (--replicas 实例数量) (--limit-memory 单个节点内存限制)
 ```
-sudo docker service create --name c-backend-service --replicas 8 -p 5000:5000 c-backend:latest
+sudo docker service create --name c-backend-service --limit-memory=4GB --replicas 7 -p 5000:5000 c-backend:latest
 ```
 
 删除服务
