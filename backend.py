@@ -3,6 +3,8 @@ import subprocess
 import json
 from gevent.pywsgi import WSGIServer
 from flask_cors import CORS
+import psutil
+import signal
 
 app = Flask(__name__)
 CORS(app)
@@ -28,11 +30,12 @@ def visualize():
     result = run_python2_script_and_get_output(code, stdin)
     if result is None:
         return {'error': 'Analysis failed.'}
+    elif len(result) == 0:
+        return {'error': 'Analysis failed.'}
+    elif result == 'timeout':
+        return {'error': 'Timeout.'}
     else:
-        if len(result) == 0:
-            return {'error': 'Analysis failed.'}
-        else:
-            return json.loads(result)
+        return json.loads(result)
 
 
 # 调用核心分析脚本
@@ -42,12 +45,19 @@ def run_python2_script_and_get_output(code, stdin):
 
     process = subprocess.Popen([python2_interpreter, script_path, code, 'c', stdin], stdout=subprocess.PIPE)
 
-    output, error = process.communicate()
-    if process.returncode != 0:
-        # raise Exception('Python 2 script failed with error: {}'.format(error.decode('utf-8')))
-        return None
-
-    return output.decode('utf-8')
+    try:
+        output, error = process.communicate(None, 30)
+        if process.returncode != 0:
+            # raise Exception('Python 2 script failed with error: {}'.format(error.decode('utf-8')))
+            return None
+        return output.decode('utf-8')
+    except subprocess.TimeoutExpired:
+        parent_pid = process.pid
+        children = psutil.Process(parent_pid).children(recursive=True)
+        for child in children:
+            child.send_signal(signal.SIGKILL)
+        process.send_signal(signal.SIGKILL)
+        return 'timeout'
 
 
 if __name__ == '__main__':

@@ -36,7 +36,7 @@ RUN tar -zxf c_backend.tar.gz && \
   rm Python-3.12.2.tgz
 
 # 安装依赖
-RUN pip3.12 install flask flask-cors gevent
+RUN pip3.12 install flask flask-cors gevent psutil
 
 # 替代旧的分析脚本（python2）
 COPY ./run_cpp_backend.py ./c_backend/
