@@ -1,3 +1,4 @@
+import redis
 from flask import Flask, request
 import subprocess
 import json
@@ -9,11 +10,13 @@ import signal
 app = Flask(__name__)
 CORS(app)
 
+redis_available = False
+
 
 # 用于测试后端是否正常运行
 @app.route('/state')
 def hello_world():
-    return 'OK'
+    return 'OK.<br>redis_available: ' + str(redis_available)
 
 
 @app.route('/visualize', methods=['POST'])
@@ -26,6 +29,12 @@ def visualize():
     if code is None:
         return {'error': 'Code does not exist.'}
 
+    key = code + '#' + stdin
+    if redis_available:
+        value = r.get(key)
+        if value is not None:
+            return json.loads(str(value))
+
     # 执行分析脚本
     result = run_python2_script_and_get_output(code, stdin)
     if result is None:
@@ -35,6 +44,8 @@ def visualize():
     elif result == 'timeout':
         return {'error': 'Timeout.'}
     else:
+        if redis_available:
+            r.set(key, result)
         return json.loads(result)
 
 
@@ -62,6 +73,13 @@ def run_python2_script_and_get_output(code, stdin):
 
 if __name__ == '__main__':
     print('c-backend server start.')
+    r = redis.Redis(host='c-redis-service', password='c-backend', port=6379, decode_responses=True)
+    try:
+        r.ping()
+        redis_available = True
+        print('redis: connected.')
+    except redis.exceptions.ConnectionError as e:
+        print('redis: failed.', e)
     # 启动后端
     http_server = WSGIServer(('', 5000), app)
     http_server.serve_forever()
