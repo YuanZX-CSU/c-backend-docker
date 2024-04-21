@@ -1,87 +1,126 @@
-## 构建单个基础镜像
+# 概览
 
-核心分析器不支持多线程，Web后端也没有添加多线程支持
+本仓库分为两个部分 c-backend ，c-redis 。
 
-构建镜像
+c-backend 是 [c-render-vue](http://vlab.csu.edu.cn/git/YuanZhixiang/c-render-vue) 的 Web 后端。
+
+c-backend 内的核心分析器不支持多线程，作为 Web 后端也没有添加多线程支持。
+
+可以单独运行一个 c-backend 容器用于测试。在实际使用中，建议使用 Docker Swarm 部署集群来支持多线程，同时可搭配 c-redis 实现缓存功能。
+
+# 部署
+
+构建 c-backend 镜像（/c-backend目录下）：
 ```
 sudo docker build -t c-backend:latest .
 ```
 
-运行镜像
+构建 c-redis 镜像（/c-backend目录下）：
 ```
-sudo docker run -d -p 5000:5000 c-backend:latest
+sudo docker build -t c-redis:latest .
+```
+ 
+（可选）查看已存在的 Docker Network：
+```
+sudo docker network ls
 ```
 
-临时前台运行镜像
+创建 Docker Network 用于连通 c-backend 和 c-redis：
 ```
-sudo docker run -it -p 5000:5000 c-backend:latest
+sudo docker network create -d overlay c-network
 ```
 
-## 运行集群
-
-初始化
+前置步骤：Docker Swarm 初始化（初次使用时）：
 ```
 sudo docker swarm init
 ```
 
-创建服务 (--replicas 实例数量) (--limit-memory 单个节点内存限制)
-```
-sudo docker service create --name c-backend-service --limit-memory=4GB --replicas 7 -p 5000:5000 c-backend:latest
-```
-
-删除服务
+（可选）删除之前的服务：
 ```
 sudo docker service rm c-backend-service
+sudo docker service rm c-redis-service
 ```
 
-## 额外
+（可选）检查是否删除完毕，查看正在运行的容器：
+```
+sudo docker ps
+```
 
-后端为http，请自行代理为https
+创建 c-redis 服务：
+```
+sudo docker service create --name c-redis-service --network c-network -p 6379:6379 c-redis:latest
+```
+
+创建 c-backend 服务：（--limit-memory 单个实例的内粗限制）（--replicas 副本数量，建议设置为 `线程数 - 1`）
+```
+sudo docker service create --name c-backend-service --network c-network --limit-memory=4GB --replicas 7 -p 5000:5000 c-backend:latest
+```
+
+# 检查
+
+部署完成后，可访问 ip:5000/state 查看部署结果。
+
+预期结果：
+```
+OK.
+redis_available: True
+```
+
+# 备注
+
+后端为http协议，请自行代理为https
 
 后端设置为完全允许跨域
 
-## 请求
+# 请求
 
-#### 获取后端状态
+### 获取后端状态
 
-路径: `/state`
+路径：`/state`
 
-方法: `GET`
+方法：`GET`
 
-返回: `OK`
+返回：`string:` `OK`
 
-#### 分析代码
+### 分析代码
 
-路径: `/visualize`
+路径：`/visualize`
 
-方法: `POST`
+方法：`POST`
 
-请求: form-data: 
+请求：form-data: 
 
-`code` : `代码`
+`code`：`代码`
 
-`stdin` : `测试用例`(可选)
+`stdin`：`测试用例`(可选)
 
-返回: `{...json...}`
+返回：`json:` `{...json...}`
 
-## 文件列表
+# 额外文件
 
-`c_backend.tar.gz` :
+仓库内含有几个额外文件，其目的是减少构建时的网络影响。
 
-来自仓库 https://github.com/pathrise-eng/pathrise-python-tutor/tree/master/v4-cokapi/backends/c_cpp 的代码打包，减少构建时的网络影响
+下面列出了文件来源，可自行下载检查。
 
-`openssl-3.2.1.tar` :
+`c_backend.tar.gz`：
 
-来自 https://www.openssl.org/source/openssl-3.2.1.tar.gz ，减少构建时的网络影响
+来自仓库 https://github.com/pathrise-eng/pathrise-python-tutor/tree/master/v4-cokapi/backends/c_cpp 的代码打包。
 
-`Python-3.12.2.tgz` :
+`openssl-3.2.1.tar`：
 
-来自 https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz ，减少构建时的网络影响
+来自 https://www.openssl.org/source/openssl-3.2.1.tar.gz ，下载后得到的是 `openssl-3.2.1.tar.tar`。
 
-`backend.py` :
+`Python-3.12.2.tgz`：
 
-服务端脚本
+来自 https://www.python.org/ftp/python/3.12.2/Python-3.12.2.tgz 。
 
-`run_cpp_backend.py` :
+# Redis 配置
 
-替换`c_backend.tar.gz`里原有的脚本，使其适配服务端
+仓库中的 `redis.conf` 相对于默认配置，做出了以下修改 :
+
+```
+# bind 127.0.0.1 ::1
+protected-mode no
+requirepass c-backend
+maxmemory 1gb
+```
