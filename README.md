@@ -10,12 +10,12 @@ c-backend 内的核心分析器不支持多线程，作为 Web 后端也没有�
 
 # 部署
 
-构建 c-backend 镜像（/c-backend目录下）：
+构建 c-backend 镜像（/c-backend 目录下）：
 ```
 sudo docker build -t c-backend:latest .
 ```
 
-构建 c-redis 镜像（/c-backend目录下）：
+构建 c-redis 镜像（/c-redis 目录下）：
 ```
 sudo docker build -t c-redis:latest .
 ```
