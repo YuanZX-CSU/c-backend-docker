@@ -6,6 +6,8 @@ from gevent.pywsgi import WSGIServer
 from flask_cors import CORS
 import psutil
 import signal
+import os
+import shutil
 
 app = Flask(__name__)
 CORS(app)
@@ -68,7 +70,18 @@ def run_python2_script_and_get_output(code, stdin):
         for child in children:
             child.send_signal(signal.SIGKILL)
         process.send_signal(signal.SIGKILL)
+        remove_random_temp_folders()
         return 'timeout'
+
+
+# 移除 run_cpp_backend.py 创建的随机临时文件夹
+def remove_random_temp_folders():
+    for item in os.listdir('.'):
+        if os.path.isdir(item) and len(item) == 36:
+            try:
+                shutil.rmtree(item)
+            except Exception as remove_random_temp_folders_e:
+                print(remove_random_temp_folders_e)
 
 
 if __name__ == '__main__':
@@ -78,8 +91,8 @@ if __name__ == '__main__':
         r.ping()
         redis_available = True
         print('redis: connected.')
-    except redis.exceptions.ConnectionError as e:
-        print('redis: failed.', e)
+    except redis.exceptions.ConnectionError as redis_e:
+        print('redis: failed.', redis_e)
     # 启动后端
     http_server = WSGIServer(('', 5000), app)
     http_server.serve_forever()
