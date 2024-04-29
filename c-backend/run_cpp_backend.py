@@ -95,7 +95,7 @@ if gcc_retcode == 0:
                     stdout=PIPE,
                     stdin=PIPE,
                     stderr=PIPE)
-    valgrind_p.stdin.write(input_data.encode('utf-8'))
+    valgrind_p.stdin.write(input_data)
     (valgrind_stdout, valgrind_stderr) = valgrind_p.communicate()
     valgrind_retcode = valgrind_p.returncode
 
