@@ -29,7 +29,7 @@ def visualize():
 
     # 校验测试的代码
     if code is None:
-        return {'error': 'Code does not exist.'}
+        return {'error': '你的代码呢？'}
 
     key = code + '#' + stdin
     if redis_available:
@@ -40,11 +40,11 @@ def visualize():
     # 执行分析脚本
     result = run_python2_script_and_get_output(code, stdin)
     if result is None:
-        return {'error': 'Analysis failed.'}
+        return {'error': '分析失败。'}
     elif len(result) == 0:
-        return {'error': 'Analysis failed.'}
+        return {'error': '分析失败。'}
     elif result == 'timeout':
-        return {'error': 'Timeout.'}
+        return {'error': '程序过大，分析超时。'}
     else:
         if redis_available:
             r.set(key, result)
