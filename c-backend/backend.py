@@ -44,7 +44,11 @@ def visualize():
     elif len(result) == 0:
         return {'error': '分析失败。'}
     elif result == 'timeout':
-        return {'error': '程序过大，分析超时。'}
+        error_message = {'error': '该程序占用过大，请优化后再试。'}
+        if redis_available:
+            r.set(key, json.dumps(error_message))
+            r.expire(key, 3600)
+        return error_message
     else:
         if redis_available:
             r.set(key, result)
