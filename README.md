@@ -19,7 +19,12 @@ sudo docker build -t c-backend:latest .
 ```
 sudo docker build -t c-redis:latest .
 ```
- 
+
+前置步骤：Docker Swarm 初始化（初次使用时）：
+```
+sudo docker swarm init
+```
+
 （可选）查看已存在的 Docker Network：
 ```
 sudo docker network ls
@@ -28,11 +33,6 @@ sudo docker network ls
 创建 Docker Network 用于连通 c-backend 和 c-redis：
 ```
 sudo docker network create -d overlay c-network
-```
-
-前置步骤：Docker Swarm 初始化（初次使用时）：
-```
-sudo docker swarm init
 ```
 
 （可选）删除之前的服务：
@@ -80,7 +80,7 @@ redis_available: True
 
 方法：`GET`
 
-返回：`string:` `OK`
+返回：`string:` `OK.<br>redis_available: [True/False]`
 
 ### 分析代码
 
